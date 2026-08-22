@@ -51,6 +51,40 @@ test('frontmatter: block lists parse like flow lists', () => {
   assert.deepEqual(list(fm, 'blocked-by'), ['T-26-049', 'T-26-021'])
 })
 
+test('frontmatter: a folded block scalar becomes one line', () => {
+  const fm = parseFrontmatter([
+    '---',
+    'summary: >-',
+    '  17 NOHrD templates were measured; 58 of',
+    '  128 variants still fall back to the template image',
+    'status: open',
+    '---',
+  ].join('\n'))
+  assert.deepEqual(fm.errors, [])
+  assert.equal(scalar(fm, 'summary'), '17 NOHrD templates were measured; 58 of 128 variants still fall back to the template image')
+  assert.equal(scalar(fm, 'status'), 'open', 'the key after the block is still a key')
+})
+
+test('frontmatter: a literal block scalar keeps its line breaks', () => {
+  const fm = parseFrontmatter('---\nnotes: |\n  first line\n  second line\nstatus: open\n---\n')
+  assert.deepEqual(fm.errors, [])
+  assert.equal(scalar(fm, 'notes'), 'first line\nsecond line')
+  assert.equal(scalar(fm, 'status'), 'open')
+})
+
+test('frontmatter: a blank line inside a folded scalar starts a new paragraph', () => {
+  const fm = parseFrontmatter('---\nwhy: >\n  one two\n\n  three\n---\n')
+  assert.equal(scalar(fm, 'why'), 'one two\nthree')
+})
+
+test('frontmatter: indentation and chomping indicators are accepted and ignored', () => {
+  for (const head of ['>', '>-', '>+', '|', '|-', '|+', '|2-']) {
+    const fm = parseFrontmatter(`---\nx: ${head}\n  value\n---\n`)
+    assert.deepEqual(fm.errors, [], head)
+    assert.equal(scalar(fm, 'x'), 'value', head)
+  }
+})
+
 test('frontmatter: a junk line is reported, not guessed at', () => {
   const fm = parseFrontmatter('---\ntask: T-26-018\nthis is not a field\n---\n')
   assert.equal(fm.errors.length, 1)

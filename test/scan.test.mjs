@@ -11,7 +11,7 @@ test('scan: every week folder and task file is found', () => {
   const s = alpha()
   assert.equal(s.readError, null)
   assert.deepEqual(s.weeks.map((w) => w.folder), ['x_26-W33', '26-W34', '26-W35'])
-  assert.equal(s.tasks.length, 9)
+  assert.equal(s.tasks.length, 10)
   assert.deepEqual(s.strays, [])
 })
 
@@ -44,9 +44,14 @@ test('scan: derived fields', () => {
 test('scan: strays are reported, never parsed and never silently dropped', () => {
   const s = beta()
   const kinds = s.strays.map((x) => x.kind).sort()
-  assert.deepEqual(kinds, ['unknown-week-folder', 'unrecognised-filename'])
-  // The directory that is not a week folder contributes no tasks.
+  assert.deepEqual(kinds, ['unknown-week-folder', 'unknown-week-folder', 'unrecognised-filename'])
+  // A directory that is not a week folder contributes no tasks, whatever is in it.
   assert.equal(s.tasks.some((t) => t.file.includes('notes')), false)
+  assert.equal(s.tasks.some((t) => t.id === 'T-26-030'), false)
+  // How many task files each one hides is what decides the severity later.
+  const byName = new Map(s.strays.map((x) => [x.name, x]))
+  assert.equal(byName.get('backlog').hiddenTasks, 1)
+  assert.equal(byName.get('notes').hiddenTasks, 0)
 })
 
 test('scan: a missing project is an error, not an empty backlog', () => {
@@ -71,9 +76,9 @@ test('next-id: max plus one, and it counts the idea', () => {
 })
 
 test('next-id: a gap is never reused', () => {
-  // alpha has no T-26-010 or T-26-011; the answer is still max + 1.
+  // alpha jumps from T-26-010 to T-26-012; the answer is still max + 1.
   const ids = new Set(scanIds(ALPHA).map((f) => f.id))
-  assert.equal(ids.has('T-26-010'), false)
+  assert.equal(ids.has('T-26-011'), false)
   assert.equal(nextId(ALPHA, { now: NOW }).id, 'T-26-013')
 })
 

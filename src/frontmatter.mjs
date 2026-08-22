@@ -1,13 +1,31 @@
-// A deliberately small YAML subset — enough for the frontmatter block that
-// work/README.md documents, and nothing else.
+// A deliberately small YAML subset — enough for the frontmatter blocks the
+// projects actually write, and nothing else.
 //
-// Not a YAML library on purpose. The frontmatter is a fixed set of scalar and
-// flat-list fields written by hand; a full parser would accept anchors, nested
-// maps and multi-document files that the convention has no meaning for, and
-// would turn "this file is malformed" into "this file parsed into something
-// nobody expected". Anything outside the subset is reported, not guessed at.
+// Not a YAML library on purpose. The frontmatter is a fixed set of fields
+// written by hand; a full parser would accept anchors, nested maps and
+// multi-document files that the convention has no meaning for, and would turn
+// "this file is malformed" into "this file parsed into something nobody
+// expected". Anything outside the subset is reported, not guessed at.
+//
+// The subset:
+//   key: value            scalar, quotes stripped, a colon inside is content
+//   key: [a, b]           flow list
+//   key:                  empty
+//   key:                  block list
+//     - a
+//   key: >- / >           folded block scalar — lines joined with spaces
+//   key: |- / |           literal block scalar — line breaks kept
+//   # anything            comment
+//
+// Block scalars are in the subset because real task files use them: the
+// buka-derived template carries `writes-production: >-` and `summary: >-`, and
+// rejecting those made every task in a whole project look malformed.
 
 const KEY = /^([A-Za-z][A-Za-z0-9_-]*)\s*:(.*)$/
+// `>`, `>-`, `|`, `|+`, `|2-` — the style character, then any mix of an
+// indentation indicator and a chomping indicator. Neither changes the value in
+// any way this tool cares about, so both are accepted and ignored.
+const BLOCK = /^([|>])[0-9+-]*$/
 
 /**
  * @returns {{present: boolean, fields: Record<string, {value: any, raw: string, line: number, kind: 'scalar'|'list'|'empty'}>, order: string[], errors: {line: number, message: string}[], bodyStart: number}}
@@ -78,6 +96,20 @@ export function parseFrontmatter(text) {
       order.push(key)
     }
 
+    const block = BLOCK.exec(rest)
+    if (block) {
+      const collected = collectBlock(lines, i + 1, end)
+      i = collected.next - 1
+      fields[key] = {
+        value: block[1] === '|' ? collected.lines.join('\n') : fold(collected.lines),
+        raw: rest,
+        line: lineNo,
+        kind: 'scalar',
+      }
+      last = null
+      continue
+    }
+
     if (rest === '') {
       // Could be an empty scalar (`completed:`) or the head of a block list.
       // Which one it is only becomes clear on the next line, so start as empty
@@ -107,6 +139,45 @@ export function parseFrontmatter(text) {
   }
 
   return { present: true, fields, order, errors, bodyStart: end + 1 }
+}
+
+/**
+ * The indented lines belonging to a block scalar, dedented by the indentation of
+ * its first non-blank line. Stops at the first line that is non-blank and not
+ * indented — the next key, or the end of the block.
+ */
+function collectBlock(lines, start, end) {
+  const out = []
+  let i = start
+  let indent = null
+
+  for (; i < end; i++) {
+    const line = lines[i]
+    if (line.trim() === '') { out.push(''); continue }
+    const lead = line.length - line.trimStart().length
+    if (lead === 0) break
+    if (indent === null) indent = lead
+    out.push(line.slice(Math.min(lead, indent)))
+  }
+
+  // Trailing blank lines are chomping detail; nothing here depends on them.
+  while (out.length && out[out.length - 1] === '') out.pop()
+  return { lines: out, next: i }
+}
+
+/** Folded style: line breaks become spaces, a blank line becomes a break. */
+function fold(lines) {
+  const parts = []
+  let current = []
+  for (const line of lines) {
+    if (line === '') {
+      if (current.length) { parts.push(current.join(' ')); current = [] }
+    } else {
+      current.push(line.trim())
+    }
+  }
+  if (current.length) parts.push(current.join(' '))
+  return parts.join('\n')
 }
 
 function parseFlowList(raw) {

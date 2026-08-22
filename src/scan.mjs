@@ -54,7 +54,16 @@ export function scanProject(project) {
 
     const week = parseWeekFolder(entry.name)
     if (!week) {
-      out.strays.push({ kind: 'unknown-week-folder', name: entry.name, file: full })
+      // How bad this is depends on what is inside. A directory of task-shaped
+      // files is invisible to every command and that is an error; a holding
+      // area of something else — `archive/` full of pre-convention files — is
+      // worth mentioning once and no more.
+      out.strays.push({
+        kind: 'unknown-week-folder',
+        name: entry.name,
+        file: full,
+        hiddenTasks: countTaskFiles(full),
+      })
       continue
     }
     out.weeks.push(week)
@@ -82,6 +91,16 @@ export function scanProject(project) {
 
   out.weeks.sort((a, b) => weekKey(a.week).localeCompare(weekKey(b.week)))
   return out
+}
+
+/** Task-shaped files sitting directly inside a directory. */
+function countTaskFiles(dir) {
+  let n = 0
+  for (const entry of readDir(dir) ?? []) {
+    if (entry.isDirectory()) continue
+    if (parseTaskFilename(entry.name)) n++
+  }
+  return n
 }
 
 function isDirectory(entry, full) {

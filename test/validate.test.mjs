@@ -64,6 +64,21 @@ test('every documented rule fires on the broken fixture', () => {
   for (const code of expected) assert.equal(seen.has(code), true, `expected ${code}`)
 })
 
+test('a non-week folder is an error only when it hides task files', () => {
+  const diags = has(codesFor(BETA, 'beta'), 'invalid-week-folder')
+  assert.equal(diags.length, 2)
+  const hiding = diags.find((d) => /backlog/.test(d.message))
+  const harmless = diags.find((d) => /notes/.test(d.message))
+  assert.equal(hiding.severity, 'error')
+  assert.match(hiding.message, /hides 1 task file/)
+  assert.equal(harmless.severity, 'warning')
+})
+
+test('block scalars in the frontmatter are not a malformed file', () => {
+  const diags = codesFor(ALPHA, 'alpha')
+  assert.deepEqual(has(diags, 'malformed-frontmatter'), [])
+})
+
 test('the duplicate id names both files', () => {
   const [d] = has(codesFor(BETA, 'beta'), 'duplicate-task-id')
   assert.equal(d.id, 'T-26-010')

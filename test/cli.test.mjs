@@ -166,7 +166,7 @@ test('--json is a stable object and nothing else is on stdout', async () => {
   assert.deepEqual(data.projects.map((p) => p.name), ['alpha', 'beta'])
 
   const alpha = data.projects[0]
-  assert.equal(alpha.counts.total, 9)
+  assert.equal(alpha.counts.total, 10)
   assert.equal(alpha.counts.slipped, 1)
   assert.equal(alpha.counts.unowned, 1)
 

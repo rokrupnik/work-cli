@@ -259,7 +259,7 @@ seeing — a task that slipped is not a defect in the file.
 | error | `invalid-status` | a status outside the documented state machine |
 | error | `invalid-date` | `created:` or `completed:` is not `YYYY-MM-DD` |
 | error | `invalid-week` | `week:` is not `YY-Wnn` |
-| error | `invalid-week-folder` | a directory under `work/tasks/` is not `YY-Wnn` or `x_YY-Wnn` |
+| error | `invalid-week-folder` | a directory under `work/tasks/` is not a week folder **and hides task files** — every task in it is invisible (a warning when it hides none, e.g. an `archive/` of pre-convention notes) |
 | error | `missing-blocked-by` | `blocked-by:`/`blocks:` names an id no file in the project has |
 | error | `ambiguous-reference` | it names an id more than one file claims |
 | error | `malformed-reference` | it holds something that is not a task id |
@@ -354,6 +354,10 @@ leased-at: 2026-08-22T10:30:00+02:00
 parallel-with: [T-26-051]
 ```
 
+Values may be plain scalars, `[flow, lists]`, `- block` lists, or `>`/`|` block
+scalars — the buka-derived template writes `summary: >-` and `writes-production: >-`,
+and those are part of the subset rather than a malformed file.
+
 The lease fields are tolerated, displayed and checked for coherence — and that is
 all. `work` does not create worktrees, dispatch anything, or move a task between
 states.
@@ -364,7 +368,7 @@ number when it moves between weeks; that is the whole point of the number.
 ## Development
 
 ```bash
-npm test           # node --test, 105 tests, no test framework
+npm test           # node --test, 111 tests, no test framework
 npm run work -- list --all   # run without linking
 ```
 

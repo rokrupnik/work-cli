@@ -76,18 +76,29 @@ export function validateScan(scan, { now = new Date(), staleLeaseHours = 24 } = 
   }
 
   for (const stray of strays) {
-    // A directory under work/tasks/ that is not a week folder is a structural
-    // error — every task inside it is invisible to every command. A stray file
-    // is only a warning: a README next to the tasks harms nothing.
     const isFolder = stray.kind === 'unknown-week-folder' || stray.kind === 'nested-directory'
+    if (isFolder) {
+      // A directory that hides task files is a structural error: every task in
+      // it is invisible to every command. One that holds anything else — an
+      // `archive/` of pre-convention notes — is a warning, said once.
+      const hidden = stray.hiddenTasks ?? 0
+      out.push({
+        severity: hidden > 0 ? 'error' : 'warning',
+        code: 'invalid-week-folder',
+        project: project.name,
+        file: stray.file,
+        message: hidden > 0
+          ? `work/tasks/${stray.name} is not a week folder (expected YY-Wnn or x_YY-Wnn) and hides ${hidden} task file${hidden === 1 ? '' : 's'}`
+          : `work/tasks/${stray.name} is not a week folder; nothing in it is read`,
+      })
+      continue
+    }
     out.push({
-      severity: isFolder ? 'error' : 'warning',
-      code: isFolder ? 'invalid-week-folder' : 'unrecognised-file',
+      severity: 'warning',
+      code: 'unrecognised-file',
       project: project.name,
       file: stray.file,
-      message: isFolder
-        ? `work/tasks/${stray.name} is not a week folder (expected YY-Wnn or x_YY-Wnn)`
-        : `work/tasks/${stray.name} does not match T-YY-NNN_slug[@OWNER].md`,
+      message: `work/tasks/${stray.name} does not match T-YY-NNN_slug[@OWNER].md`,
     })
   }
 
