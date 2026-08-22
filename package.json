@@ -1,0 +1,23 @@
+{
+  "name": "work",
+  "version": "0.1.0",
+  "description": "A read-only terminal view over work/tasks/ markdown across registered projects.",
+  "type": "module",
+  "private": true,
+  "license": "UNLICENSED",
+  "bin": {
+    "work": "bin/work.mjs"
+  },
+  "engines": {
+    "node": ">=20.10"
+  },
+  "files": [
+    "bin",
+    "src",
+    "README.md"
+  ],
+  "scripts": {
+    "test": "node --test \"test/**/*.test.mjs\"",
+    "work": "node bin/work.mjs"
+  }
+}
