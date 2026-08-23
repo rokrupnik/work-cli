@@ -4,7 +4,8 @@
   "description": "A read-only terminal view over work/tasks/ markdown across registered projects.",
   "type": "module",
   "private": true,
-  "license": "UNLICENSED",
+  "license": "MIT",
+  "author": "Rok Rupnik",
   "bin": {
     "work": "bin/work.mjs"
   },
@@ -14,7 +15,8 @@
   "files": [
     "bin",
     "src",
-    "README.md"
+    "README.md",
+    "LICENSE"
   ],
   "scripts": {
     "test": "node --test \"test/**/*.test.mjs\"",

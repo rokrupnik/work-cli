@@ -408,3 +408,11 @@ no shell — so the same suite runs unchanged on Windows.
 - The directory walk is iterative with a depth bound, so a symlink loop cannot
   hang it.
 - Zero runtime dependencies.
+
+## License
+
+MIT — see [LICENSE](LICENSE).
+
+`package.json` keeps `"private": true`. That is a guard against an accidental
+`npm publish`, not a restriction on the code: install it with `npm link` or
+`npm install -g <path>` from a checkout.
