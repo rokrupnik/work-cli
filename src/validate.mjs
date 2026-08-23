@@ -164,7 +164,7 @@ function validateTask(t, { byId, now, staleLeaseHours }) {
     out.push(diag('id-mismatch', t, `${t.relPath}: filename says ${t.id}, \`task:\` says ${t.fmId}`))
   }
 
-  // Filename owners vs assignee, as sets: `@ROK+UROS` and `assignee: [UROS, ROK]`
+  // Filename owners vs assignee, as sets: `@ANA+BOR` and `assignee: [BOR, ANA]`
   // are the same assignment written in two orders, and one real task does
   // exactly that.
   if (t.fileOwners !== null) {

@@ -2,7 +2,7 @@
 // fixed and small enough that a table of known flags is the whole design.
 //
 // The rule that matters: an unknown flag is an error, never a positional. A
-// typo'd `--ownr ROK` that silently degraded to "no filter" would print the
+// typo'd `--ownr ANA` that silently degraded to "no filter" would print the
 // wrong overview and look like a correct one.
 
 export class UsageError extends Error {
@@ -55,7 +55,7 @@ export function parseArgs(argv, spec, aliases = {}) {
       value = argv[++i]
       if (value === undefined) throw new UsageError(`option --${name} needs a value`)
     }
-    // Repeatable string flags accumulate: `--owner ROK --owner UROS` is a set,
+    // Repeatable string flags accumulate: `--owner ANA --owner BOR` is a set,
     // not a last-one-wins. Filters that quietly drop earlier values are how a
     // report ends up narrower than the command that produced it looks.
     if (flags[name] === undefined) flags[name] = [value]

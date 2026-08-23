@@ -32,7 +32,7 @@ test('a healthy lease raises nothing', () => {
 })
 
 test('owner comparison is by set, not by string', () => {
-  // T-26-004 is @ROK+UROS on disk and `assignee: [UROS, ROK]` inside.
+  // T-26-004 is @ANA+BOR on disk and `assignee: [BOR, ANA]` inside.
   assert.deepEqual(has(codesFor(ALPHA, 'alpha'), 'owner-mismatch'), [])
 })
 
@@ -117,7 +117,7 @@ test('the lease limit is a project-level finding', () => {
 
 test('registry findings: duplicate paths and missing projects', () => {
   const diags = validateRegistry({}, {
-    duplicates: [{ path: '/code/rls', names: ['rls', 'rls-astro'] }],
+    duplicates: [{ path: '/code/acme', names: ['acme', 'acme-shop'] }],
     missing: [{ name: 'ghost', path: '/gone', reason: 'no work/tasks/ directory here' }],
   })
   assert.deepEqual(diags.map((d) => d.code), ['duplicate-project-path', 'project-path-missing'])

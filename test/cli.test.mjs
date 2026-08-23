@@ -74,14 +74,14 @@ test('done work is out of the way by default and available on request', async ()
 })
 
 test('filters compose', async () => {
-  const r = await run(['list', '--owner', 'ROK', '--week', '26-W34'], { cwd: ALPHA, projects: both })
+  const r = await run(['list', '--owner', 'ANA', '--week', '26-W34'], { cwd: ALPHA, projects: both })
   assert.match(r.out, /T-26-003/)
   assert.equal(/T-26-008/.test(r.out), false, 'wrong week')
   assert.equal(/T-26-006/.test(r.out), false, 'wrong owner')
 })
 
 test('--owner is repeatable and comma-separable', async () => {
-  const r = await run(['list', '--owner', 'YUN,UROS'], { cwd: ALPHA, projects: both })
+  const r = await run(['list', '--owner', 'CIT,BOR'], { cwd: ALPHA, projects: both })
   assert.match(r.out, /T-26-006/)
   assert.match(r.out, /T-26-008/)
   assert.equal(/T-26-003/.test(r.out), false)
@@ -127,7 +127,7 @@ test('the multi-project table names the project on every row', async () => {
 })
 
 test('an unknown flag is refused rather than ignored', async () => {
-  const r = await run(['list', '--ownr', 'ROK'], { cwd: ALPHA, projects: both })
+  const r = await run(['list', '--ownr', 'ANA'], { cwd: ALPHA, projects: both })
   assert.equal(r.code, 2)
   assert.match(r.err, /unknown option: --ownr/)
 })
@@ -146,13 +146,13 @@ test('a bad enum value is refused with the list of good ones', async () => {
 })
 
 test('a stray positional is refused', async () => {
-  const r = await run(['list', 'ROK'], { cwd: ALPHA, projects: both })
+  const r = await run(['list', 'ANA'], { cwd: ALPHA, projects: both })
   assert.equal(r.code, 2)
-  assert.match(r.err, /unexpected argument: ROK/)
+  assert.match(r.err, /unexpected argument: ANA/)
 })
 
 test('a leading flag implies list', async () => {
-  const r = await run(['--owner', 'ROK'], { cwd: ALPHA, projects: both })
+  const r = await run(['--owner', 'ANA'], { cwd: ALPHA, projects: both })
   assert.equal(r.code, 0)
   assert.match(r.out, /T-26-003/)
 })
@@ -174,7 +174,7 @@ test('--json is a stable object and nothing else is on stdout', async () => {
   assert.equal(slipped.week, '26-W33')
   assert.equal(slipped.folderWeek, '26-W34')
   assert.equal(slipped.slipped, true)
-  assert.equal(slipped.path, 'work/tasks/26-W34/T-26-006_slipped-thing@YUN.md', 'forward slashes on every platform')
+  assert.equal(slipped.path, 'work/tasks/26-W34/T-26-006_slipped-thing@CIT.md', 'forward slashes on every platform')
 })
 
 // ------------------------------------------------------------------- validate
@@ -358,7 +358,7 @@ test('project show summarises weeks, statuses and owners', async () => {
   assert.equal(r.code, 0)
   assert.match(r.out, /26-W34/)
   assert.match(r.out, /x_26-W33/)
-  assert.match(r.out, /ROK/)
+  assert.match(r.out, /ANA/)
 })
 
 test('a registered path that disappeared is an environment failure, not an empty list', async () => {

@@ -2,7 +2,7 @@
 task: T-26-023
 title: A lease nobody came back for
 status: in-progress
-assignee: [ROK]
+assignee: [ANA]
 week: 26-W34
 created: 2026-08-15
 branch: task/T-26-023_stale-lease

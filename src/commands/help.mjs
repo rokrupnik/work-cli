@@ -55,7 +55,7 @@ function topicHelp(topic, ctx) {
 
   work                            open tasks in the current project
   work list --all                 every registered project
-  work list --owner ROK           what one person has open
+  work list --owner ANA           what one person has open
   work list --blocked             what is blocked, and by what
   work list --week 26-W34         a week, scheduled or landed-in
   work list --slipped             scheduled for one week, sitting in another
@@ -87,7 +87,7 @@ Exit 0 when there are no errors, 1 when there are (or, with --strict, warnings).
       return `work next-id — the highest task number anywhere under work/, plus one.
 
   work next-id
-  work next-id --project rls-astro
+  work next-id --project acme-shop
   work next-id --all              one line per project, name<TAB>id
   work next-id --verbose          where the highest number came from
 

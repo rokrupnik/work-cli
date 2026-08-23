@@ -2,7 +2,7 @@
 task: T-26-025
 title: The lease that puts the project over the limit
 status: integrating
-assignee: [ROK]
+assignee: [ANA]
 week: 26-W34
 created: 2026-08-21
 branch: task/T-26-025_third-lease

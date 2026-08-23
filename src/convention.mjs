@@ -4,7 +4,7 @@
 /** `26-W34`, or `x_26-W33` for a closed week. */
 export const WEEK_FOLDER = /^(x_)?(\d{2})-W(\d{2})$/
 /**
- * `T-26-081_slug@ROK+UROS.md`, `x_T-26-018_slug@ROK.md`, or no `@OWNER` at all.
+ * `T-26-081_slug@ANA+BOR.md`, `x_T-26-018_slug@ANA.md`, or no `@OWNER` at all.
  * Three digits minimum, more allowed: the counter is documented as `NNN` but a
  * project that passes 999 keeps counting, and `T-26-1_x.md` is a typo rather
  * than a task.
@@ -62,7 +62,7 @@ export function parseTaskFilename(name) {
   }
 }
 
-/** `ROK+UROS` -> ['ROK','UROS']. An empty `@` suffix is zero owners, not one. */
+/** `ANA+BOR` -> ['ANA','BOR']. An empty `@` suffix is zero owners, not one. */
 export function splitOwners(s) {
   return String(s)
     .split('+')

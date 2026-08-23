@@ -2,7 +2,7 @@
 task: T-26-009
 title: A thing an executor is holding
 status: in-progress
-assignee: [ROK]
+assignee: [ANA]
 week: 26-W34
 created: 2026-08-21
 branch: task/T-26-009_leased-thing

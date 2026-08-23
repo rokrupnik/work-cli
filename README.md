@@ -15,21 +15,22 @@ setup was chosen to avoid. If you want to change a task, open the file.
 
 ```
 $ work
-rls-astro  ~/code/rls/rls-astro
+acme-shop  ~/code/acme-shop
 
-  TASK      TITLE                                                        SCHEDULED  FOLDER  STATUS       BLOCKED BY
+  TASK      TITLE                                       SCHEDULED  FOLDER  STATUS       BLOCKED BY
 
-ROK  (21)
-  T-26-050  Build our own consent banner                                 26-W34     26-W34  open         T-26-072
-  T-26-071  Rename the configurator tables and columns to what everyth…  26-W34     26-W34  in-progress  —
+ANA  (2)
+  T-26-050  Replace the checkout address form           26-W34     26-W34  open         T-26-072
+  T-26-071  Rename the pricing tables to match the API  26-W34     26-W34  in-progress  —
 
-YUN  (2)
-  T-26-029  Re-export the four homepage card images at a usable resolu…  26-W33     26-W34  open         —
+BOR  (2)
+  T-26-029  Re-export the product gallery images        26-W33     26-W34  open         —
+  T-26-072  Tax rules per country, and one test each    26-W34     26-W34  open         —
 
 (unowned)  (1)
-  T-26-081  Build a portable task overview CLI                           26-W34     26-W34  blocked      —
+  T-26-081  Write the import validator                  26-W34     26-W34  blocked      —
 
-32 shown · 32 open · 48 done  ·  3 blocked · 1 slipped · 1 unowned
+5 shown · 5 open · 3 done  ·  2 blocked · 1 slipped · 1 unowned
 ```
 
 `T-26-029` above is scheduled for `26-W33` and sitting in `26-W34`. That is a
@@ -53,7 +54,7 @@ validation tool, not an orchestrator.
 Requires Node.js 22 or newer (20.10+ works). No runtime dependencies.
 
 ```bash
-git clone <this> ~/code/work
+git clone git@github.com:rokrupnik/work-cli.git ~/code/work
 cd ~/code/work
 npm link
 ```
@@ -113,11 +114,11 @@ published to npm and is not meant to be.
 A project is any directory with `work/tasks/<YY-Wnn>/*.md` under it.
 
 ```bash
-work project add ~/code/rls/rls-astro          # name defaults to the directory
+work project add ~/code/acme-shop              # name defaults to the directory
 work project add ~/code/other-repo shorthand   # or give it one
 work project list
-work project show rls-astro
-work project remove rls-astro
+work project show acme-shop
+work project remove acme-shop
 ```
 
 Adding a project stores **one line**: a name and a canonical absolute path.
@@ -148,7 +149,7 @@ The file:
 {
   "version": 1,
   "projects": [
-    { "name": "rls-astro", "path": "/Users/rok/code/rls/rls-astro", "added": "2026-08-22" }
+    { "name": "acme-shop", "path": "/Users/you/code/acme-shop", "added": "2026-08-22" }
   ]
 }
 ```
@@ -193,7 +194,7 @@ Task numbering is per project. Whenever more than one project is on screen, the
 
 ### Filters
 
-All of them compose; `--owner ROK --blocked` is one question, not two.
+All of them compose; `--owner ANA --blocked` is one question, not two.
 
 ```
 -o, --owner <NAME>       repeatable, comma-separable; --owner none for unowned
@@ -252,7 +253,7 @@ seeing — a task that slipped is not a defect in the file.
 | error | `missing-field` | `task`, `title`, `status`, `assignee`, `week` or `created` is absent or empty |
 | error | `id-mismatch` | the filename id and `task:` disagree |
 | error | `duplicate-task-id` | two files in one project claim the same id |
-| error | `owner-mismatch` | the filename `@OWNER` and `assignee:` disagree (compared as sets, so `@ROK+UROS` and `[UROS, ROK]` agree) |
+| error | `owner-mismatch` | the filename `@OWNER` and `assignee:` disagree (compared as sets, so `@ANA+BOR` and `[BOR, ANA]` agree) |
 | error | `done-prefix-mismatch` | the `x_` prefix and `status: done` disagree, either way round |
 | error | `done-without-completed` | `status: done` with no `completed:` date |
 | error | `completed-on-open` | a task that is not done carries a `completed:` value |
@@ -318,14 +319,14 @@ finding to act on; returning 2 means the pipeline is calling it wrongly and the
 findings were never produced.
 
 ```yaml
-- run: work validate --project my-repo --strict
+- run: work validate --project acme-shop --strict
 ```
 
 ## The conventions it reads
 
 ```
-<project>/work/tasks/26-W34/T-26-081_tasks-cli@ROK.md
-<project>/work/tasks/x_26-W33/x_T-26-018_erp-feed@ROK+UROS.md
+<project>/work/tasks/26-W34/T-26-081_import-validator@ANA.md
+<project>/work/tasks/x_26-W33/x_T-26-041_supplier-feed@ANA+BOR.md
                      │        │  │        │           └── owners; none at all means unowned
                      │        │  │        └── slug
                      │        │  └── id: stable, per project, never reused
@@ -337,17 +338,17 @@ Frontmatter, as documented by the projects themselves:
 
 ```yaml
 task: T-26-050
-title: Build our own consent banner
+title: Replace the checkout address form
 status: open            # open planning ready in-progress review
                         # integrating changes-requested blocked done
-assignee: [ROK]         # empty list = unowned
-requested-by: Romina    # who asked; not the assignee
+assignee: [ANA]         # empty list = unowned
+requested-by: Vera       # who asked; not the assignee
 week: 26-W33            # the week it was SCHEDULED for
 created: 2026-08-10
 completed:              # set when status flips to done
-blocked-by: [T-26-049]
+blocked-by: [T-26-072]
 # while an Executor holds a worktree:
-branch: task/T-26-050_consent-banner
+branch: task/T-26-050_checkout-address-form
 worktree: .worktrees/T-26-050
 execution-owner: executor-1
 leased-at: 2026-08-22T10:30:00+02:00

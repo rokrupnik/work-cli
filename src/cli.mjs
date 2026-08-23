@@ -81,7 +81,7 @@ export async function main(argv, io) {
 
   let name = args[0]
   let rest = args.slice(1)
-  // `work --owner ROK` — a leading flag means the implicit `list`.
+  // `work --owner ANA` — a leading flag means the implicit `list`.
   if (name.startsWith('-')) {
     rest = args
     name = 'list'

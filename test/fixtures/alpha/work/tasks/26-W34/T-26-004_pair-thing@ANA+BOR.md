@@ -1,8 +1,8 @@
 ---
-task: T-26-010
-title: One of two files claiming the same id
+task: T-26-004
+title: A thing two people own
 status: open
-assignee: [ROK]
+assignee: [BOR, ANA]
 week: 26-W34
 created: 2026-08-18
 ---

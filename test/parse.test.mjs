@@ -7,10 +7,10 @@ test('frontmatter: the documented block parses', () => {
   const fm = parseFrontmatter([
     '---',
     'task: T-26-050',
-    'title: Build our own consent banner',
+    'title: Replace the checkout address form',
     'status: open',
-    'assignee: [ROK]',
-    'requested-by: Romina',
+    'assignee: [ANA]',
+    'requested-by: Vera',
     'week: 26-W33',
     'created: 2026-08-10',
     'completed:',
@@ -23,8 +23,8 @@ test('frontmatter: the documented block parses', () => {
   assert.equal(fm.present, true)
   assert.deepEqual(fm.errors, [])
   assert.equal(scalar(fm, 'task'), 'T-26-050')
-  assert.equal(scalar(fm, 'title'), 'Build our own consent banner')
-  assert.deepEqual(list(fm, 'assignee'), ['ROK'])
+  assert.equal(scalar(fm, 'title'), 'Replace the checkout address form')
+  assert.deepEqual(list(fm, 'assignee'), ['ANA'])
   assert.equal(scalar(fm, 'completed'), '')
   assert.deepEqual(list(fm, 'blocked-by'), ['T-26-049'])
 })
@@ -39,7 +39,7 @@ test('frontmatter: commented-out fields are not fields', () => {
     '---',
     'task: T-26-050',
     '# Optional while an Executor has an isolated worktree:',
-    '# branch: task/T-26-050_consent-banner',
+    '# branch: task/T-26-050_checkout-address-form',
     '---',
   ].join('\n'))
   assert.deepEqual(fm.errors, [])
@@ -110,18 +110,18 @@ test('frontmatter: a BOM does not hide the block', () => {
 })
 
 test('frontmatter: CRLF line endings parse', () => {
-  const fm = parseFrontmatter('---\r\ntask: T-26-001\r\nassignee: [ROK]\r\n---\r\n')
+  const fm = parseFrontmatter('---\r\ntask: T-26-001\r\nassignee: [ANA]\r\n---\r\n')
   assert.deepEqual(fm.errors, [])
   assert.equal(scalar(fm, 'task'), 'T-26-001')
-  assert.deepEqual(list(fm, 'assignee'), ['ROK'])
+  assert.deepEqual(list(fm, 'assignee'), ['ANA'])
 })
 
 test('filenames: the four documented shapes', () => {
   assert.deepEqual(parseTaskFilename('T-26-081_tasks-cli.md'), {
     done: false, id: 'T-26-081', year: 26, number: 81, padding: 3, slug: 'tasks-cli', owners: null,
   })
-  assert.equal(parseTaskFilename('x_T-26-018_erp-feed@ROK.md').done, true)
-  assert.deepEqual(parseTaskFilename('T-26-060_decision@ROK+UROS.md').owners, ['ROK', 'UROS'])
+  assert.equal(parseTaskFilename('x_T-26-018_erp-feed@ANA.md').done, true)
+  assert.deepEqual(parseTaskFilename('T-26-060_decision@ANA+BOR.md').owners, ['ANA', 'BOR'])
   assert.equal(parseTaskFilename('T-26-005_unowned.md').owners, null)
 })
 
@@ -139,9 +139,9 @@ test('week folders: open and closed', () => {
 })
 
 test('owners: an empty @ suffix is zero owners', () => {
-  assert.deepEqual(splitOwners('ROK+UROS'), ['ROK', 'UROS'])
+  assert.deepEqual(splitOwners('ANA+BOR'), ['ANA', 'BOR'])
   assert.deepEqual(splitOwners(''), [])
-  assert.deepEqual(splitOwners('rok'), ['ROK'])
+  assert.deepEqual(splitOwners('ana'), ['ANA'])
 })
 
 test('ids, instants and dates', () => {

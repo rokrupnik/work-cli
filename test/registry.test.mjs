@@ -46,8 +46,8 @@ test('a registry with the wrong shape is a clear error', () => {
 })
 
 test('byName is case-insensitive; a project name is not a password', () => {
-  const reg = { projects: [{ name: 'rls-astro', path: ALPHA }] }
-  assert.equal(registry.byName(reg, 'RLS-Astro').name, 'rls-astro')
+  const reg = { projects: [{ name: 'acme-shop', path: ALPHA }] }
+  assert.equal(registry.byName(reg, 'Acme-Shop').name, 'acme-shop')
   assert.equal(registry.byName(reg, 'nope'), null)
 })
 
@@ -76,7 +76,7 @@ test('duplicatePaths finds one directory registered twice', () => {
 })
 
 test('duplicatePaths follows platform casing rules', () => {
-  const reg = { projects: [{ name: 'a', path: '/code/RLS' }, { name: 'b', path: '/code/rls' }] }
+  const reg = { projects: [{ name: 'a', path: '/code/Acme' }, { name: 'b', path: '/code/acme' }] }
   assert.equal(registry.duplicatePaths(reg, { platform: 'win32' }).length, 1)
   assert.equal(registry.duplicatePaths(reg, { platform: 'darwin' }).length, 1)
   assert.equal(registry.duplicatePaths(reg, { platform: 'linux' }).length, 0)

@@ -33,7 +33,7 @@ test('scan: derived fields', () => {
   assert.equal(onTime.slipped, false)
 
   assert.equal(byId.get('T-26-005').unowned, true)
-  assert.deepEqual(byId.get('T-26-004').owners, ['ROK', 'UROS'])
+  assert.deepEqual(byId.get('T-26-004').owners, ['ANA', 'BOR'])
   assert.equal(byId.get('T-26-001').done, true)
   assert.equal(byId.get('T-26-001').folderClosed, true)
   assert.equal(byId.get('T-26-009').leased, true)

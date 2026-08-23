@@ -36,8 +36,8 @@ export function canonical(p, { cwd = process.cwd(), home = os.homedir() } = {}) 
  * Whether two canonical paths name the same directory.
  *
  * Case matters on Linux and does not on Windows. macOS is the awkward one: APFS
- * is case-INsensitive by default but case-preserving, so `~/Code/rls` and
- * `~/code/rls` are one directory on a stock Mac and two on a case-sensitive
+ * is case-INsensitive by default but case-preserving, so `~/Code/acme` and
+ * `~/code/acme` are one directory on a stock Mac and two on a case-sensitive
  * volume. Treating darwin as insensitive is the conservative choice — it makes
  * `work` refuse a duplicate registration that would otherwise silently split one
  * project into two names, which is the failure that actually costs something.

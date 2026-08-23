@@ -79,7 +79,7 @@ export function scanAll(projects, opts = {}) {
 }
 
 /**
- * Filters, all of them ANDed. Composing is the point: `--owner ROK --blocked`
+ * Filters, all of them ANDed. Composing is the point: `--owner ANA --blocked`
  * is "Rok's blocked work", not two separate questions.
  */
 export function filterTasks(tasks, f = {}) {

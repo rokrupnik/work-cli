@@ -35,7 +35,7 @@ export async function listCommand(argv, ctx) {
   const { flags, positionals } = parseArgs(argv, SPEC, ALIASES)
   if (positionals.length) {
     throw new UsageError(`unexpected argument: ${positionals[0]}`, {
-      hint: 'Filters are flags: work list --owner ROK --status open',
+      hint: 'Filters are flags: work list --owner ANA --status open',
     })
   }
 

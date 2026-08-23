@@ -1,11 +1,10 @@
 ---
-task: T-26-003
-title: An open thing
+task: T-26-013
+title: Prefixed x_ but not done
 status: open
-assignee: [ROK]
+assignee: [ANA]
 week: 26-W34
 created: 2026-08-18
-completed:
 ---
 
 # fixture

@@ -2,7 +2,7 @@
 task: T-26-022
 title: Lease fields that do not parse
 status: in-progress
-assignee: [ROK]
+assignee: [ANA]
 week: 26-W34
 created: 2026-08-18
 branch: task/T-26-022_bad-lease

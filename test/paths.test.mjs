@@ -9,8 +9,8 @@ import path from 'node:path'
 import { canonical, samePath, isInside, ancestors, configDir, configFile, expandHome, tilde } from '../src/paths.mjs'
 
 test('samePath: Linux is case-sensitive, Windows and macOS are not', () => {
-  const a = '/Users/rok/Code/rls'
-  const b = '/users/rok/code/rls'
+  const a = '/Users/you/Code/acme'
+  const b = '/users/you/code/acme'
   assert.equal(samePath(a, b, { platform: 'linux' }), false)
   assert.equal(samePath(a, b, { platform: 'darwin' }), true)
   assert.equal(samePath(a, b, { platform: 'win32' }), true)
@@ -18,7 +18,7 @@ test('samePath: Linux is case-sensitive, Windows and macOS are not', () => {
 })
 
 test('samePath: Windows drive letters compare case-insensitively', () => {
-  assert.equal(samePath('C:\\code\\rls', 'c:\\Code\\RLS', { platform: 'win32' }), true)
+  assert.equal(samePath('C:\\code\\acme', 'c:\\Code\\ACME', { platform: 'win32' }), true)
 })
 
 test('isInside: a nested directory is inside, a sibling is not', () => {
@@ -36,26 +36,26 @@ test('ancestors: walks up to the root and stops', () => {
 })
 
 test('expandHome: a leading tilde expands, an embedded one does not', () => {
-  assert.equal(expandHome('~/code/rls', { home: '/home/rok' }), path.join('/home/rok', 'code/rls'))
-  assert.equal(expandHome('~', { home: '/home/rok' }), '/home/rok')
-  assert.equal(expandHome('/opt/~/x', { home: '/home/rok' }), '/opt/~/x')
+  assert.equal(expandHome('~/code/acme', { home: '/home/you' }), path.join('/home/you', 'code/acme'))
+  assert.equal(expandHome('~', { home: '/home/you' }), '/home/you')
+  assert.equal(expandHome('/opt/~/x', { home: '/home/you' }), '/opt/~/x')
 })
 
 test('configDir: documented location per platform', () => {
   assert.equal(
-    configDir({ env: {}, platform: 'win32', home: 'C:\\Users\\rok' }),
-    path.join('C:\\Users\\rok', 'AppData', 'Roaming', 'work'),
+    configDir({ env: {}, platform: 'win32', home: 'C:\\Users\\you' }),
+    path.join('C:\\Users\\you', 'AppData', 'Roaming', 'work'),
   )
   assert.equal(
-    configDir({ env: { APPDATA: 'D:\\Roaming' }, platform: 'win32', home: 'C:\\Users\\rok' }),
+    configDir({ env: { APPDATA: 'D:\\Roaming' }, platform: 'win32', home: 'C:\\Users\\you' }),
     path.join('D:\\Roaming', 'work'),
   )
   assert.equal(
-    configDir({ env: {}, platform: 'darwin', home: '/Users/rok' }),
-    path.join('/Users/rok', '.config', 'work'),
+    configDir({ env: {}, platform: 'darwin', home: '/Users/you' }),
+    path.join('/Users/you', '.config', 'work'),
   )
   assert.equal(
-    configDir({ env: { XDG_CONFIG_HOME: '/cfg' }, platform: 'linux', home: '/home/rok' }),
+    configDir({ env: { XDG_CONFIG_HOME: '/cfg' }, platform: 'linux', home: '/home/you' }),
     path.join('/cfg', 'work'),
   )
 })
@@ -85,6 +85,6 @@ test('canonical: a path that does not exist still becomes absolute', () => {
 })
 
 test('tilde: folds the home directory back for display', () => {
-  assert.equal(tilde(path.join('/home/rok', 'code', 'work'), { home: '/home/rok', platform: 'linux' }), `~${path.sep}code${path.sep}work`)
-  assert.equal(tilde('/opt/other', { home: '/home/rok', platform: 'linux' }), '/opt/other')
+  assert.equal(tilde(path.join('/home/you', 'code', 'work'), { home: '/home/you', platform: 'linux' }), `~${path.sep}code${path.sep}work`)
+  assert.equal(tilde('/opt/other', { home: '/home/you', platform: 'linux' }), '/opt/other')
 })
