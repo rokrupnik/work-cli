@@ -121,6 +121,27 @@ test('the scheduled week and the current folder are both printed', async () => {
   assert.match(row, /26-W34/)
 })
 
+test('inside a section, a blank line separates the weeks', async () => {
+  const r = await run(['list'], { cwd: ALPHA, projects: both })
+  const lines = r.out.split('\n')
+
+  // BOR holds one 26-W34 task and one 26-W35 task, in that order.
+  const i = lines.findIndex((l) => l.includes('T-26-010'))
+  assert.ok(i > 0, 'T-26-010 is on screen')
+  assert.equal(lines[i + 1], '', 'a blank line where the week changes')
+  assert.match(lines[i + 2], /T-26-008/)
+})
+
+test('rows of one week are not broken up', async () => {
+  const r = await run(['list', '--owner', 'ANA'], { cwd: ALPHA, projects: both })
+  const lines = r.out.split('\n')
+  // ANA's three open tasks are all 26-W34 and must stay one block.
+  const first = lines.findIndex((l) => l.includes('T-26-003'))
+  const last = lines.findIndex((l) => l.includes('T-26-009'))
+  assert.ok(first > 0 && last > first)
+  assert.equal(lines.slice(first, last + 1).some((l) => l === ''), false)
+})
+
 test('the multi-project table names the project on every row', async () => {
   const r = await run(['list', '--all', '--group-by', 'owner'], { projects: both })
   assert.match(r.out, /PROJECT/)

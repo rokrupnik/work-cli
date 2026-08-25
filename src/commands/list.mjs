@@ -151,13 +151,33 @@ function renderHuman(views, selection, ctx, { groupBy, filtered }) {
         ctx.out('')
         ctx.out(color.cyan(group.label) + color.dim(`  (${group.tasks.length})`))
       }
-      for (const r of group.rows) ctx.out(table.row(r))
+      // A blank line wherever the scheduled week changes. Inside one person's
+      // section the week boundary is the only thing separating this week's work
+      // from what is parked in a later one, and without the break the two run
+      // together into a single wall of rows.
+      let previousWeek = null
+      group.rows.forEach((r, i) => {
+        const week = scheduledWeek(group.tasks[i])
+        if (previousWeek !== null && week !== previousWeek) ctx.out('')
+        previousWeek = week
+        ctx.out(table.row(r))
+      })
     }
 
     ctx.out('')
     ctx.out(summaryLine(scan, shown, color))
     for (const note of notesFor(scan, color)) ctx.out(note)
   }
+}
+
+/**
+ * The week a row is grouped under: the week it is scheduled for, falling back to
+ * the folder it sits in when the frontmatter carries none. The same key
+ * sortTasks() orders by, so the breaks always land between blocks and never in
+ * the middle of one.
+ */
+function scheduledWeek(t) {
+  return t.week || t.folderWeek
 }
 
 function columnsFor({ multi, groupBy }) {

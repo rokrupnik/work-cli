@@ -64,6 +64,9 @@ function topicHelp(topic, ctx) {
   work list --group-by week       regroup; the grouped column leaves the table
   work list --json                for scripts
 
+Inside a section, rows run in scheduled-week order with a blank line at each
+change of week.
+
 The SCHEDULED and FOLDER columns are printed side by side and left to
 disagree. That disagreement is the record that a task slipped — work never
 normalises it away.`

@@ -19,19 +19,26 @@ acme-shop  ~/code/acme-shop
 
   TASK      TITLE                                       SCHEDULED  FOLDER  STATUS       BLOCKED BY
 
-ANA  (2)
+ANA  (3)
   T-26-050  Replace the checkout address form           26-W34     26-W34  open         T-26-072
   T-26-071  Rename the pricing tables to match the API  26-W34     26-W34  in-progress  —
 
+  T-26-084  Split the warehouse export into two feeds   26-W36     26-W36  open         —
+
 BOR  (2)
   T-26-029  Re-export the product gallery images        26-W33     26-W34  open         —
+
   T-26-072  Tax rules per country, and one test each    26-W34     26-W34  open         —
 
 (unowned)  (1)
   T-26-081  Write the import validator                  26-W34     26-W34  blocked      —
 
-5 shown · 5 open · 3 done  ·  2 blocked · 1 slipped · 1 unowned
+6 shown · 6 open · 3 done  ·  2 blocked · 1 slipped · 1 unowned
 ```
+
+Inside a section the rows are ordered by scheduled week and a blank line marks
+each change, so what is due this week and what is parked in a later one do not
+run together.
 
 `T-26-029` above is scheduled for `26-W33` and sitting in `26-W34`. That is a
 slipped task, and the disagreement between those two columns is the only record
@@ -222,6 +229,9 @@ hide exactly the task the slip signal exists to surface.
 
 ### Output
 
+Sections are groups — by owner unless `--group-by` says otherwise — and within
+one, a blank line falls wherever the scheduled week changes.
+
 Human output goes to **stdout**, one plain line at a time — it pipes and greps.
 Columns are laid out to the terminal width (or `COLUMNS`, or 100 when neither is
 available), and `TITLE` and `BLOCKED BY` give way before anything else does.
@@ -369,7 +379,7 @@ number when it moves between weeks; that is the whole point of the number.
 ## Development
 
 ```bash
-npm test           # node --test, 111 tests, no test framework
+npm test           # node --test, 113 tests, no test framework
 npm run work -- list --all   # run without linking
 ```
 
