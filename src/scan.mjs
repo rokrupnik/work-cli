@@ -9,6 +9,7 @@ import {
   parseTaskFilename,
   splitOwners,
   LEASE_FIELDS,
+  WAITING_STATUSES,
 } from './convention.mjs'
 
 /** `<project>/work/tasks` */
@@ -167,6 +168,7 @@ function readTask({ project, week, file, filename, named }) {
     week: fmWeek,
     created: scalar(fm, 'created').trim(),
     completed: scalar(fm, 'completed').trim(),
+    notified: scalar(fm, 'notified').trim(),
     blockedBy: list(fm, 'blocked-by').map((s) => s.trim().toUpperCase()).filter(Boolean),
     blocks: list(fm, 'blocks').map((s) => s.trim().toUpperCase()).filter(Boolean),
     lease,
@@ -182,6 +184,10 @@ function readTask({ project, week, file, filename, named }) {
     get slipped() { return Boolean(fmWeek) && fmWeek !== week.week },
     get unowned() { return (fileOwners && fileOwners.length ? fileOwners : assignee).length === 0 },
     get leased() { return LEASE_FIELDS.some((k) => k in lease && String(lease[k] ?? '').length > 0) },
+    // Stalled, either on us or on somebody else. See WAITING_STATUSES.
+    get waiting() { return WAITING_STATUSES.includes(status) },
+    // Shipped and verified; what is left is telling whoever asked for it.
+    get awaitingNotice() { return status === 'notify' },
   }
 }
 

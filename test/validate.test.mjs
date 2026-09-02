@@ -79,6 +79,36 @@ test('block scalars in the frontmatter are not a malformed file', () => {
   assert.deepEqual(has(diags, 'malformed-frontmatter'), [])
 })
 
+test('notify and needs-info must name a person', () => {
+  const diags = has(codesFor(BETA, 'beta'), 'notify-without-requester')
+  assert.deepEqual(diags.map((d) => d.id).sort(), ['T-26-031', 'T-26-032'])
+  assert.equal(diags.every((d) => d.severity === 'error'), true)
+  // The ones that do name a person raise nothing.
+  assert.deepEqual(has(codesFor(ALPHA, 'alpha'), 'notify-without-requester'), [])
+})
+
+test('a notified: date outside notify or done is a warning', () => {
+  const diags = has(codesFor(BETA, 'beta'), 'notified-out-of-state')
+  assert.equal(diags.length, 1)
+  assert.equal(diags[0].id, 'T-26-033')
+  assert.equal(diags[0].severity, 'warning')
+  // On `notify` and on `done` it is exactly where it belongs.
+  assert.deepEqual(has(codesFor(ALPHA, 'alpha'), 'notified-out-of-state'), [])
+})
+
+test('notified: is held to the same date format as created and completed', () => {
+  const diags = has(codesFor(BETA, 'beta'), 'invalid-date')
+  const bad = diags.find((d) => d.id === 'T-26-034')
+  assert.ok(bad, 'the non-date is reported')
+  assert.equal(bad.severity, 'error')
+  assert.match(bad.message, /notified: sometime last week/)
+})
+
+test('a closed task that recorded its notice is not a finding', () => {
+  const errors = codesFor(ALPHA, 'alpha').filter((d) => d.severity === 'error')
+  assert.deepEqual(errors, [])
+})
+
 test('the duplicate id names both files', () => {
   const [d] = has(codesFor(BETA, 'beta'), 'duplicate-task-id')
   assert.equal(d.id, 'T-26-010')

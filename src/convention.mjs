@@ -17,6 +17,12 @@ export const TASK_ID = /^T-(\d{2})-(\d{3,})$/
 // original three; the rest arrived with the agent workflow. Anything outside the
 // set is reported rather than shrugged at — a status nothing recognises is a
 // status no filter will ever match.
+//
+// The order here is the order of the lifecycle, and `notify` sits BEFORE `done`
+// on purpose. `done` brings the `x_` filename prefix, which sorts the file to
+// the bottom of its week folder; a debt to a human parked down there among the
+// finished work is a debt nobody reads. Before `done`, the file stays at the top
+// until the mail is actually sent.
 export const STATUSES = [
   'open',
   'planning',
@@ -25,12 +31,38 @@ export const STATUSES = [
   'review',
   'integrating',
   'changes-requested',
+  'needs-info',
   'blocked',
+  'notify',
   'done',
 ]
 
 /** Statuses that mean an Executor-style seat is holding the task right now. */
 export const ACTIVE_STATUSES = ['in-progress', 'review', 'integrating']
+
+/**
+ * Stalled, whoever's fault it is. Two statuses rather than one because the
+ * distinction is the only thing that makes the reading useful: `blocked` is our
+ * move and we cannot make it (a task dependency, a technical obstacle),
+ * `needs-info` is somebody else's — a named person owes an answer, a decision or
+ * a file. On the day rfx-odoo split them, every one of its stalled tasks was
+ * waiting on a person, so the undivided status had been answering no question at
+ * all. `--blocked` spans both: a filter that silently dropped half the stalled
+ * work the day the convention grew would be worse than no filter.
+ */
+export const WAITING_STATUSES = ['blocked', 'needs-info']
+
+/**
+ * Statuses that cannot name nobody. `notify` would not know who to write to and
+ * `needs-info` would not know who to ask, so both require a `requested-by:`.
+ */
+export const REQUESTER_REQUIRED_STATUSES = ['notify', 'needs-info']
+
+/**
+ * Where a `notified:` date is meaningful: while the notice is still owed, and
+ * afterwards on the closed task. Anywhere else it is a leftover.
+ */
+export const NOTIFIABLE_STATUSES = ['notify', 'done']
 
 /** Frontmatter every task file must carry. Anything beyond this is optional. */
 export const REQUIRED_FIELDS = ['task', 'title', 'status', 'assignee', 'week', 'created']

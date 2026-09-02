@@ -11,14 +11,14 @@ test('scan: every week folder and task file is found', () => {
   const s = alpha()
   assert.equal(s.readError, null)
   assert.deepEqual(s.weeks.map((w) => w.folder), ['x_26-W33', '26-W34', '26-W35'])
-  assert.equal(s.tasks.length, 10)
+  assert.equal(s.tasks.length, 12)
   assert.deepEqual(s.strays, [])
 })
 
 test('scan: ideas are not tasks', () => {
-  // T-26-012 lives in work/ideas/, so it must not appear in the overview even
+  // T-26-020 lives in work/ideas/, so it must not appear in the overview even
   // though it carries a number.
-  assert.equal(alpha().tasks.some((t) => t.id === 'T-26-012'), false)
+  assert.equal(alpha().tasks.some((t) => t.id === 'T-26-020'), false)
 })
 
 test('scan: derived fields', () => {
@@ -64,22 +64,23 @@ test('scanIds: sees tasks, archived tasks and numbered ideas', () => {
   const ids = new Set(scanIds(ALPHA).map((f) => f.id))
   assert.equal(ids.has('T-26-001'), true, 'archived task')
   assert.equal(ids.has('T-26-009'), true, 'open task')
-  assert.equal(ids.has('T-26-012'), true, 'numbered idea')
+  assert.equal(ids.has('T-26-020'), true, 'numbered idea')
 })
 
 test('next-id: max plus one, and it counts the idea', () => {
   const r = nextId(ALPHA, { now: NOW })
   assert.equal(r.safe, true)
-  assert.equal(r.max.id, 'T-26-012')
-  assert.equal(r.id, 'T-26-013')
+  assert.equal(r.max.id, 'T-26-020', 'the idea holds the highest number')
+  assert.equal(r.id, 'T-26-021')
   assert.equal(r.padding, 3)
 })
 
 test('next-id: a gap is never reused', () => {
-  // alpha jumps from T-26-010 to T-26-012; the answer is still max + 1.
+  // alpha has no T-26-011 and no T-26-015..019; the answer is still max + 1.
   const ids = new Set(scanIds(ALPHA).map((f) => f.id))
   assert.equal(ids.has('T-26-011'), false)
-  assert.equal(nextId(ALPHA, { now: NOW }).id, 'T-26-013')
+  assert.equal(ids.has('T-26-015'), false)
+  assert.equal(nextId(ALPHA, { now: NOW }).id, 'T-26-021')
 })
 
 test('next-id: refuses to allocate while an id is duplicated', () => {
@@ -91,7 +92,7 @@ test('next-id: refuses to allocate while an id is duplicated', () => {
 
 test('next-id: the year never goes backwards', () => {
   const later = nextId(ALPHA, { now: new Date('2031-01-05T00:00:00Z') })
-  assert.equal(later.id, 'T-31-013')
+  assert.equal(later.id, 'T-31-021')
   const earlier = nextId(ALPHA, { now: new Date('2020-01-05T00:00:00Z') })
-  assert.equal(earlier.id, 'T-26-013', 'a wrong clock must not regress the prefix')
+  assert.equal(earlier.id, 'T-26-021', 'a wrong clock must not regress the prefix')
 })

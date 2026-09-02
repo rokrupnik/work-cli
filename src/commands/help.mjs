@@ -29,7 +29,8 @@ LIST FILTERS  (all of them compose)
   -o, --owner <NAME>      owner, repeatable; --owner none for unowned
   -s, --status <STATE>    ${STATUSES.join(', ')}
   -w, --week <YY-Wnn>     scheduled week or current folder
-      --blocked           status: blocked, or a non-empty blocked-by
+      --blocked           blocked or needs-info, or a non-empty blocked-by
+      --notify            shipped; the requester has not been told yet
       --unowned           no @OWNER and no assignee
       --slipped           week: and the week folder disagree
       --leased            carries Executor worktree fields
@@ -56,7 +57,8 @@ function topicHelp(topic, ctx) {
   work                            open tasks in the current project
   work list --all                 every registered project
   work list --owner ANA           what one person has open
-  work list --blocked             what is blocked, and by what
+  work list --blocked             what is stalled, and on what
+  work list --notify              shipped, and still owed a word to the requester
   work list --week 26-W34         a week, scheduled or landed-in
   work list --slipped             scheduled for one week, sitting in another
   work list --unowned             open work nobody owns
@@ -66,6 +68,14 @@ function topicHelp(topic, ctx) {
 
 Inside a section, rows run in scheduled-week order with a blank line at each
 change of week.
+
+--blocked spans both waiting statuses: blocked is our move and we cannot make
+it, needs-info is somebody else's — a named person owes an answer, a decision
+or a file.
+
+--notify is the debt to a human. It sits before done because done adds the x_
+prefix, which sorts the file to the bottom of the week folder where nobody
+reads it.
 
 The SCHEDULED and FOLDER columns are printed side by side and left to
 disagree. That disagreement is the record that a task slipped — work never
@@ -79,6 +89,7 @@ normalises it away.`
   work validate --strict          warnings fail too
   work validate --errors-only     drop the informational findings
   work validate --code slipped-task
+  work validate --code notify-without-requester
   work validate --stale-hours 8   how old a lease may be
   work validate --rules           list every rule and its severity
   work validate --json

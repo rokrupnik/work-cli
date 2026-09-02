@@ -5,7 +5,9 @@
 // source of truth and re-reading it every time is what keeps it so.
 import { parseArgs, manyLower, UsageError } from '../args.mjs'
 import { canonical, tilde } from '../paths.mjs'
-import { resolveProjects, scanAll, filterTasks, sortTasks, isBlocked, checkWeeks } from '../select.mjs'
+import {
+  resolveProjects, scanAll, filterTasks, sortTasks, isBlocked, isAwaitingNotice, checkWeeks,
+} from '../select.mjs'
 import { layout, streamWidth } from '../render/table.mjs'
 import { STATUSES, ACTIVE_STATUSES } from '../convention.mjs'
 import { taskToJson } from '../json.mjs'
@@ -17,6 +19,7 @@ const SPEC = {
   status: 'string',
   week: 'string',
   blocked: 'boolean',
+  notify: 'boolean',
   unowned: 'boolean',
   slipped: 'boolean',
   leased: 'boolean',
@@ -75,6 +78,7 @@ export async function listCommand(argv, ctx) {
     statuses,
     weeks,
     blocked: Boolean(flags.blocked),
+    notify: Boolean(flags.notify),
     unowned: Boolean(flags.unowned),
     slipped: Boolean(flags.slipped),
     leased: Boolean(flags.leased),
@@ -102,7 +106,7 @@ function exitFor(views) {
 }
 
 function isFiltered(flags) {
-  return ['owner', 'status', 'week', 'blocked', 'unowned', 'slipped', 'leased', 'active', 'done'].some((k) => flags[k])
+  return ['owner', 'status', 'week', 'blocked', 'notify', 'unowned', 'slipped', 'leased', 'active', 'done'].some((k) => flags[k])
 }
 
 function renderHuman(views, selection, ctx, { groupBy, filtered }) {
@@ -211,7 +215,13 @@ function rowFor(t, color) {
 }
 
 function colorStatus(status, color) {
+  // `needs-info` is not `blocked` in a different shade: red is our obstacle,
+  // magenta is somebody else's move. And `notify` is deliberately not green —
+  // green is `done`, and a debt that reads as finished is the exact mistake
+  // putting `notify` before `done` exists to prevent.
   if (status === 'blocked') return color.red(status)
+  if (status === 'needs-info') return color.magenta(status)
+  if (status === 'notify') return color.blue(status)
   if (status === 'done') return color.green(status)
   if (ACTIVE_STATUSES.includes(status)) return color.yellow(status)
   if (!status) return color.dim('(none)')
@@ -252,10 +262,12 @@ function summaryLine(scan, shown, color) {
   ]
   const signals = []
   const blocked = open.filter(isBlocked).length
+  const toNotify = open.filter(isAwaitingNotice).length
   const slipped = all.filter((t) => t.slipped).length
   const unowned = open.filter((t) => t.unowned).length
   const leased = open.filter((t) => t.leased).length
   if (blocked) signals.push(`${blocked} blocked`)
+  if (toNotify) signals.push(`${toNotify} to notify`)
   if (slipped) signals.push(`${slipped} slipped`)
   if (unowned) signals.push(`${unowned} unowned`)
   if (leased) signals.push(`${leased} leased`)
@@ -288,6 +300,7 @@ function jsonPayload(views, selection, ctx) {
         done: scan.tasks.filter((t) => t.done).length,
         shown: shown.length,
         blocked: scan.tasks.filter((t) => !t.done && isBlocked(t)).length,
+        notify: scan.tasks.filter((t) => !t.done && isAwaitingNotice(t)).length,
         slipped: scan.tasks.filter((t) => t.slipped).length,
         unowned: scan.tasks.filter((t) => !t.done && t.unowned).length,
         leased: scan.tasks.filter((t) => !t.done && t.leased).length,

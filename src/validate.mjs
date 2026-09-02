@@ -10,6 +10,8 @@ import {
   LEASE_FIELDS,
   MAX_ACTIVE_LEASES,
   ACTIVE_STATUSES,
+  REQUESTER_REQUIRED_STATUSES,
+  NOTIFIABLE_STATUSES,
   isWeek,
   parseDate,
   parseInstant,
@@ -28,7 +30,8 @@ export const RULES = [
   ['error', 'done-without-completed', '`status: done` with no `completed:` date'],
   ['error', 'completed-on-open', 'a task that is not done carries a `completed:` value'],
   ['error', 'invalid-status', '`status:` is not one of the documented states'],
-  ['error', 'invalid-date', '`created:` or `completed:` is not `YYYY-MM-DD`'],
+  ['error', 'invalid-date', '`created:`, `completed:` or `notified:` is not `YYYY-MM-DD`'],
+  ['error', 'notify-without-requester', '`status: notify` or `needs-info` with nobody in `requested-by:`'],
   ['error', 'invalid-week', '`week:` is not `YY-Wnn`'],
   ['error', 'invalid-week-folder', 'a directory under work/tasks/ is not `YY-Wnn` or `x_YY-Wnn`'],
   ['error', 'missing-blocked-by', '`blocked-by:` names a task id that does not exist in this project'],
@@ -40,6 +43,7 @@ export const RULES = [
   ['error', 'duplicate-project-path', 'two registered names point at the same directory'],
   ['warning', 'slipped-task', '`week:` and the week folder differ — the task slipped'],
   ['warning', 'unowned-task', 'an open task with no owner'],
+  ['warning', 'notified-out-of-state', '`notified:` is set on a task that is neither `notify` nor `done`'],
   ['warning', 'open-task-in-closed-week', 'a task that is not done sits in an `x_` week folder'],
   ['warning', 'lease-limit-exceeded', `more than ${MAX_ACTIVE_LEASES} Executor leases are active`],
   ['warning', 'stale-lease', 'a lease is older than the staleness threshold'],
@@ -204,9 +208,33 @@ function validateTask(t, { byId, now, staleLeaseHours }) {
     out.push(diag('completed-on-open', t, `${t.relPath}: \`completed: ${t.completed}\` on a task whose status is \`${t.status || '(empty)'}\``))
   }
 
-  for (const field of ['created', 'completed']) {
+  for (const field of ['created', 'completed', 'notified']) {
     const v = t[field]
     if (v && !parseDate(v)) out.push(diag('invalid-date', t, `${t.relPath}: \`${field}: ${v}\` is not YYYY-MM-DD`))
+  }
+
+  // `notify` cannot say who to write to and `needs-info` cannot say who to ask
+  // without a requester. Both statuses exist to name the next human, so one that
+  // names nobody is the status doing nothing.
+  if (REQUESTER_REQUIRED_STATUSES.includes(t.status) && !t.requestedBy) {
+    out.push(diag(
+      'notify-without-requester',
+      t,
+      `${t.relPath}: \`status: ${t.status}\` with an empty \`requested-by:\``,
+      { hint: t.status === 'notify' ? 'Nobody to notify.' : 'Nobody to ask.' },
+    ))
+  }
+  // A `notified:` date anywhere else is a leftover from an earlier state, not a
+  // record of anything. Deliberately not the mirror rule — a `done` task with a
+  // requester and no `notified:` would fire on every task closed before the
+  // field existed, and a warning that is on everywhere is a warning nobody
+  // reads.
+  if (t.notified && !NOTIFIABLE_STATUSES.includes(t.status)) {
+    out.push(diag(
+      'notified-out-of-state',
+      t,
+      `${t.id} has \`notified: ${t.notified}\` while its status is \`${t.status || '(empty)'}\``,
+    ))
   }
   if (t.week && !isWeek(t.week)) {
     out.push(diag('invalid-week', t, `${t.relPath}: \`week: ${t.week}\` is not YY-Wnn`))

@@ -206,9 +206,10 @@ All of them compose; `--owner ANA --blocked` is one question, not two.
 ```
 -o, --owner <NAME>       repeatable, comma-separable; --owner none for unowned
 -s, --status <STATE>     open planning ready in-progress review integrating
-                         changes-requested blocked done
+                         changes-requested needs-info blocked notify done
 -w, --week <YY-Wnn>      matches the scheduled week AND the current folder
-    --blocked            status: blocked, or a non-empty blocked-by
+    --blocked            blocked or needs-info, or a non-empty blocked-by
+    --notify             shipped; the requester has not been told yet
     --unowned            no @OWNER and no assignee
     --slipped            week: and the week folder disagree
     --leased             carries Executor worktree fields
@@ -268,7 +269,8 @@ seeing — a task that slipped is not a defect in the file.
 | error | `done-without-completed` | `status: done` with no `completed:` date |
 | error | `completed-on-open` | a task that is not done carries a `completed:` value |
 | error | `invalid-status` | a status outside the documented state machine |
-| error | `invalid-date` | `created:` or `completed:` is not `YYYY-MM-DD` |
+| error | `invalid-date` | `created:`, `completed:` or `notified:` is not `YYYY-MM-DD` |
+| error | `notify-without-requester` | `status: notify` or `needs-info` with an empty `requested-by:` — nobody to write to, nobody to ask |
 | error | `invalid-week` | `week:` is not `YY-Wnn` |
 | error | `invalid-week-folder` | a directory under `work/tasks/` is not a week folder **and hides task files** — every task in it is invisible (a warning when it hides none, e.g. an `archive/` of pre-convention notes) |
 | error | `missing-blocked-by` | `blocked-by:`/`blocks:` names an id no file in the project has |
@@ -280,6 +282,7 @@ seeing — a task that slipped is not a defect in the file.
 | error | `project-path-missing` | a registered path is gone or has no `work/tasks/` |
 | warning | `slipped-task` | `week:` and the week folder differ |
 | warning | `unowned-task` | an open task with no owner |
+| warning | `notified-out-of-state` | `notified:` is set on a task that is neither `notify` nor `done` |
 | warning | `open-task-in-closed-week` | a live task inside an `x_` week folder |
 | warning | `lease-limit-exceeded` | more than two Executor leases are active |
 | warning | `stale-lease` | a lease older than `--stale-hours` (default 24) |
@@ -349,13 +352,14 @@ Frontmatter, as documented by the projects themselves:
 ```yaml
 task: T-26-050
 title: Replace the checkout address form
-status: open            # open planning ready in-progress review
-                        # integrating changes-requested blocked done
+status: open            # open planning ready in-progress review integrating
+                        # changes-requested needs-info blocked notify done
 assignee: [ANA]         # empty list = unowned
-requested-by: Vera       # who asked; not the assignee
+requested-by: Vera      # who asked; not the assignee
 week: 26-W33            # the week it was SCHEDULED for
 created: 2026-08-10
 completed:              # set when status flips to done
+notified:               # optional; the date requested-by was told it shipped
 blocked-by: [T-26-072]
 # while an Executor holds a worktree:
 branch: task/T-26-050_checkout-address-form
@@ -373,13 +377,60 @@ The lease fields are tolerated, displayed and checked for coherence — and that
 all. `work` does not create worktrees, dispatch anything, or move a task between
 states.
 
+### Stalled work: `blocked` and `needs-info`
+
+Two statuses, not one, and the split is what makes the reading worth having:
+
+- **`blocked`** — *our* move, and we cannot make it. A task dependency, or a
+  technical obstacle. `blocked-by:` is for the dependency case.
+- **`needs-info`** — *somebody else's* move. A named person owes an answer, a
+  decision or a file, and nothing here advances until it arrives.
+
+The reason is a measurement rather than a taste. On the day rfx-odoo split them,
+every single stalled task in that project was waiting on a person — so the
+undivided status had been answering no question at all. Split, the board says
+whose move it is, and an empty `blocked` column becomes a true reading instead of
+a field nobody filled in.
+
+`--blocked` spans **both**. A filter that quietly stopped listing half the
+stalled work on the day the convention grew would report progress that never
+happened.
+
+### `notify`, and the `notified:` date
+
+**`notify`** — shipped and verified; what is left is telling the person who asked
+for it.
+
+It sits **before** `done`, not after, and the order is the point. `done` brings
+the `x_` filename prefix, which sorts the file to the bottom of its week folder;
+a debt to a human parked down there among the finished work is a debt nobody
+reads. Before `done`, the file stays at the top until the mail is actually sent.
+
+Both `notify` and `needs-info` require a non-empty `requested-by:` — one cannot
+say who to write to, the other cannot say who to ask, and a status that names
+nobody is the status doing nothing. `work validate` reports that as
+`notify-without-requester`.
+
+The optional **`notified:`** date records when the notice went out. It is
+meaningful only on `notify` and on `done`; anywhere else it is a leftover from an
+earlier state, reported as `notified-out-of-state`.
+
+There is deliberately **no** rule for "done, has a requester, no `notified:`". It
+would fire on every task closed before the field existed, and a warning that is
+on everywhere is a warning nobody reads.
+
+```bash
+work list --notify        # what is shipped and still owed a word
+work list --blocked       # what is stalled, ours and theirs both
+```
+
 Identity is the **id**, never the title and never the path. A task keeps its
 number when it moves between weeks; that is the whole point of the number.
 
 ## Development
 
 ```bash
-npm test           # node --test, 113 tests, no test framework
+npm test           # node --test, 120 tests, no test framework
 npm run work -- list --all   # run without linking
 ```
 

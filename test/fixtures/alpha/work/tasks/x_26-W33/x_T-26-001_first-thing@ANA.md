@@ -7,6 +7,7 @@ requested-by: Vera
 week: 26-W33
 created: 2026-08-10
 completed: 2026-08-12
+notified: 2026-08-13
 blocked-by: []
 ---
 

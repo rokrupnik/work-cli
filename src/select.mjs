@@ -3,7 +3,7 @@ import fs from 'node:fs'
 import { canonical, tilde } from './paths.mjs'
 import * as registry from './registry.mjs'
 import { scanProject, weekKey } from './scan.mjs'
-import { ACTIVE_STATUSES } from './convention.mjs'
+import { ACTIVE_STATUSES, WAITING_STATUSES } from './convention.mjs'
 
 export class SelectionError extends Error {
   constructor(message, { hint, code = 3 } = {}) {
@@ -102,6 +102,7 @@ export function filterTasks(tasks, f = {}) {
       if (!hit) return false
     }
     if (f.blocked && !isBlocked(t)) return false
+    if (f.notify && !isAwaitingNotice(t)) return false
     if (f.unowned && !t.unowned) return false
     if (f.slipped && !t.slipped) return false
     if (f.leased && !t.leased) return false
@@ -110,8 +111,20 @@ export function filterTasks(tasks, f = {}) {
   })
 }
 
+/**
+ * Stalled: parked on one of the waiting statuses, or holding an unmet
+ * dependency. `needs-info` counts — splitting `blocked` in two was a change to
+ * how the stall is described, not to what is stalled, and a `--blocked` that
+ * quietly stopped listing four tasks the day the convention grew would report
+ * progress that never happened.
+ */
 export function isBlocked(t) {
-  return t.status === 'blocked' || t.blockedBy.length > 0
+  return WAITING_STATUSES.includes(t.status) || t.blockedBy.length > 0
+}
+
+/** Shipped and verified; the person who asked for it has not been told yet. */
+export function isAwaitingNotice(t) {
+  return t.status === 'notify'
 }
 
 export function sortTasks(tasks) {

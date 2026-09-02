@@ -112,6 +112,27 @@ test('--slipped, --unowned, --blocked and --leased each surface their signal', a
   assert.equal(/T-26-003/.test(leased.out), false)
 })
 
+test('--notify selects the shipped-but-untold, and nothing else', async () => {
+  const r = await run(['list', '--notify'], { cwd: ALPHA, projects: both })
+  assert.equal(r.code, 0)
+  assert.match(r.out, /T-26-013/)
+  for (const other of ['T-26-003', 'T-26-007', 'T-26-014']) {
+    assert.equal(new RegExp(other).test(r.out), false, other)
+  }
+})
+
+test('--blocked spans both waiting statuses', async () => {
+  const r = await run(['list', '--blocked'], { cwd: ALPHA, projects: both })
+  assert.match(r.out, /T-26-007/, 'status: blocked')
+  assert.match(r.out, /T-26-014/, 'status: needs-info')
+  assert.equal(/T-26-013/.test(r.out), false, 'notify is not stalled')
+})
+
+test('the summary counts what is still owed to a person', async () => {
+  const r = await run(['list'], { cwd: ALPHA, projects: both })
+  assert.match(r.out, /1 to notify/)
+})
+
 test('the scheduled week and the current folder are both printed', async () => {
   const r = await run(['list', '--slipped'], { cwd: ALPHA, projects: both })
   assert.match(r.out, /SCHEDULED/)
@@ -187,9 +208,20 @@ test('--json is a stable object and nothing else is on stdout', async () => {
   assert.deepEqual(data.projects.map((p) => p.name), ['alpha', 'beta'])
 
   const alpha = data.projects[0]
-  assert.equal(alpha.counts.total, 10)
+  assert.equal(alpha.counts.total, 12)
   assert.equal(alpha.counts.slipped, 1)
   assert.equal(alpha.counts.unowned, 1)
+
+  assert.equal(alpha.counts.notify, 1)
+
+  // Additive only: every field the contract already carried is still here.
+  const notify = alpha.tasks.find((t) => t.id === 'T-26-013')
+  assert.equal(notify.status, 'notify')
+  assert.equal(notify.awaitingNotice, true)
+  assert.equal(notify.notified, null, 'the notice is still owed')
+  assert.equal(notify.requestedBy, 'Vera')
+  const closed = data.projects[0].tasks.find((t) => t.id === 'T-26-001')
+  assert.equal(closed.notified, '2026-08-13')
 
   const slipped = alpha.tasks.find((t) => t.id === 'T-26-006')
   assert.equal(slipped.week, '26-W33')
@@ -250,7 +282,7 @@ test('validate: --rules lists every rule with its severity', async () => {
 test('next-id prints one id on stdout', async () => {
   const r = await run(['next-id'], { cwd: ALPHA, projects: both })
   assert.equal(r.code, 0)
-  assert.equal(r.out.trim(), 'T-26-013')
+  assert.equal(r.out.trim(), 'T-26-021')
 })
 
 test('next-id refuses while ids are duplicated, and says why', async () => {
@@ -268,7 +300,7 @@ test('next-id needs one project when several are in scope', async () => {
 
   const all = await run(['next-id', '--all'], { cwd: FIXTURES, projects: both })
   assert.equal(all.code, 1, 'beta is still unsafe')
-  assert.match(all.out, /alpha\tT-26-013/)
+  assert.match(all.out, /alpha\tT-26-021/)
 })
 
 // -------------------------------------------------------------------- project
