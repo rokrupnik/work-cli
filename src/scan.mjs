@@ -165,6 +165,7 @@ function readTask({ project, week, file, filename, named }) {
     status,
     assignee,
     requestedBy: scalar(fm, 'requested-by').trim(),
+    gmailThreadId: scalar(fm, 'gmail-thread-id').trim(),
     week: fmWeek,
     created: scalar(fm, 'created').trim(),
     completed: scalar(fm, 'completed').trim(),

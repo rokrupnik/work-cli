@@ -16,6 +16,7 @@ import {
   parseDate,
   parseInstant,
   parseTaskId,
+  isGmailThreadId,
 } from './convention.mjs'
 
 export const RULES = [
@@ -31,7 +32,8 @@ export const RULES = [
   ['error', 'completed-on-open', 'a task that is not done carries a `completed:` value'],
   ['error', 'invalid-status', '`status:` is not one of the documented states'],
   ['error', 'invalid-date', '`created:`, `completed:` or `notified:` is not `YYYY-MM-DD`'],
-  ['error', 'notify-without-requester', '`status: notify` or `needs-info` with nobody in `requested-by:`'],
+  ['error', 'invalid-gmail-thread-id', '`gmail-thread-id:` is not a Gmail API thread id'],
+  ['error', 'notify-without-requester', 'a stakeholder-facing status with nobody in `requested-by:`'],
   ['error', 'invalid-week', '`week:` is not `YY-Wnn`'],
   ['error', 'invalid-week-folder', 'a directory under work/tasks/ is not `YY-Wnn` or `x_YY-Wnn`'],
   ['error', 'missing-blocked-by', '`blocked-by:` names a task id that does not exist in this project'],
@@ -213,9 +215,17 @@ function validateTask(t, { byId, now, staleLeaseHours }) {
     if (v && !parseDate(v)) out.push(diag('invalid-date', t, `${t.relPath}: \`${field}: ${v}\` is not YYYY-MM-DD`))
   }
 
-  // `notify` cannot say who to write to and `needs-info` cannot say who to ask
-  // without a requester. Both statuses exist to name the next human, so one that
-  // names nobody is the status doing nothing.
+  if (t.gmailThreadId && !isGmailThreadId(t.gmailThreadId)) {
+    out.push(diag(
+      'invalid-gmail-thread-id',
+      t,
+      `${t.relPath}: \`gmail-thread-id: ${t.gmailThreadId}\` is not a Gmail API thread id`,
+      { hint: 'Store the API thread id only, not a Gmail URL or its FMfc… UI token.' },
+    ))
+  }
+
+  // Stakeholder-facing states need a named human: notify must say whom to tell,
+  // needs-info whom to ask, and waits-info whose reply is outstanding.
   if (REQUESTER_REQUIRED_STATUSES.includes(t.status) && !t.requestedBy) {
     out.push(diag(
       'notify-without-requester',

@@ -206,9 +206,9 @@ All of them compose; `--owner ANA --blocked` is one question, not two.
 ```
 -o, --owner <NAME>       repeatable, comma-separable; --owner none for unowned
 -s, --status <STATE>     open planning ready in-progress review integrating
-                         changes-requested needs-info blocked notify done
+                         changes-requested needs-info waits-info blocked notify done
 -w, --week <YY-Wnn>      matches the scheduled week AND the current folder
-    --blocked            blocked or needs-info, or a non-empty blocked-by
+    --blocked            blocked, needs-info, waits-info, or a blocked-by
     --notify             shipped; the requester has not been told yet
     --unowned            no @OWNER and no assignee
     --slipped            week: and the week folder disagree
@@ -238,7 +238,10 @@ Columns are laid out to the terminal width (or `COLUMNS`, or 100 when neither is
 available), and `TITLE` and `BLOCKED BY` give way before anything else does.
 
 `--json` is the stable contract; the human table can be re-laid out at any time,
-that cannot. Paths in JSON always use forward slashes, on every platform.
+that cannot. Paths in JSON always use forward slashes, on every platform. An
+optional `gmail-thread-id:` frontmatter value is exposed as `gmailThreadId`
+(`null` when absent), so a coordinator can find the original stakeholder thread
+without parsing task prose.
 
 Diagnostics — validation findings, "this project's path is gone", "you are not
 inside a project" — go to **stderr**, so `work validate > report.txt` still shows
@@ -270,7 +273,8 @@ seeing — a task that slipped is not a defect in the file.
 | error | `completed-on-open` | a task that is not done carries a `completed:` value |
 | error | `invalid-status` | a status outside the documented state machine |
 | error | `invalid-date` | `created:`, `completed:` or `notified:` is not `YYYY-MM-DD` |
-| error | `notify-without-requester` | `status: notify` or `needs-info` with an empty `requested-by:` — nobody to write to, nobody to ask |
+| error | `invalid-gmail-thread-id` | `gmail-thread-id:` is not a lowercase hexadecimal Gmail API thread id |
+| error | `notify-without-requester` | `notify`, `needs-info` or `waits-info` with an empty `requested-by:` |
 | error | `invalid-week` | `week:` is not `YY-Wnn` |
 | error | `invalid-week-folder` | a directory under `work/tasks/` is not a week folder **and hides task files** — every task in it is invisible (a warning when it hides none, e.g. an `archive/` of pre-convention notes) |
 | error | `missing-blocked-by` | `blocked-by:`/`blocks:` names an id no file in the project has |
@@ -353,9 +357,10 @@ Frontmatter, as documented by the projects themselves:
 task: T-26-050
 title: Replace the checkout address form
 status: open            # open planning ready in-progress review integrating
-                        # changes-requested needs-info blocked notify done
+                        # changes-requested needs-info waits-info blocked notify done
 assignee: [ANA]         # empty list = unowned
 requested-by: Vera      # who asked; not the assignee
+gmail-thread-id: 1a05925fdef4f718 # optional Gmail API id; never a URL or FMfc… token
 week: 26-W33            # the week it was SCHEDULED for
 created: 2026-08-10
 completed:              # set when status flips to done
@@ -373,26 +378,31 @@ Values may be plain scalars, `[flow, lists]`, `- block` lists, or `>`/`|` block
 scalars — the buka-derived template writes `summary: >-` and `writes-production: >-`,
 and those are part of the subset rather than a malformed file.
 
+`gmail-thread-id` is optional and may be shared by several tasks that came from
+the same conversation. Store the immutable id returned by the Gmail API, not a
+Gmail permalink and not the opaque `FMfc…` token shown in the web interface.
+
 The lease fields are tolerated, displayed and checked for coherence — and that is
 all. `work` does not create worktrees, dispatch anything, or move a task between
 states.
 
-### Stalled work: `blocked` and `needs-info`
+### Stalled work: `blocked`, `needs-info` and `waits-info`
 
-Two statuses, not one, and the split is what makes the reading worth having:
+Three statuses distinguish the next concrete move:
 
 - **`blocked`** — *our* move, and we cannot make it. A task dependency, or a
   technical obstacle. `blocked-by:` is for the dependency case.
-- **`needs-info`** — *somebody else's* move. A named person owes an answer, a
-  decision or a file, and nothing here advances until it arrives.
+- **`needs-info`** — the missing input is known, but the stakeholder has not
+  yet been asked. Our next move is to prepare and send the question.
+- **`waits-info`** — the question has been sent. A named person now owes an
+  answer, a decision or a file, and nothing here advances until it arrives.
 
-The reason is a measurement rather than a taste. On the day rfx-odoo split them,
-every single stalled task in that project was waiting on a person — so the
-undivided status had been answering no question at all. Split, the board says
-whose move it is, and an empty `blocked` column becomes a true reading instead of
-a field nobody filled in.
+The first split separated technical obstacles from missing stakeholder input.
+The second makes the outreach step visible: `needs-info` means we still owe the
+question, while `waits-info` means the stakeholder owes the reply. The board
+therefore says whose move it is without hiding any stalled work.
 
-`--blocked` spans **both**. A filter that quietly stopped listing half the
+`--blocked` spans **all three**. A filter that quietly stopped listing part of
 stalled work on the day the convention grew would report progress that never
 happened.
 
@@ -406,9 +416,9 @@ the `x_` filename prefix, which sorts the file to the bottom of its week folder;
 a debt to a human parked down there among the finished work is a debt nobody
 reads. Before `done`, the file stays at the top until the mail is actually sent.
 
-Both `notify` and `needs-info` require a non-empty `requested-by:` — one cannot
-say who to write to, the other cannot say who to ask, and a status that names
-nobody is the status doing nothing. `work validate` reports that as
+`notify`, `needs-info` and `waits-info` require a non-empty
+`requested-by:` — they must say who to tell, ask or await. `work validate`
+reports an unnamed stakeholder-facing state as
 `notify-without-requester`.
 
 The optional **`notified:`** date records when the notice went out. It is

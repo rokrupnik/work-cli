@@ -121,10 +121,11 @@ test('--notify selects the shipped-but-untold, and nothing else', async () => {
   }
 })
 
-test('--blocked spans both waiting statuses', async () => {
+test('--blocked spans every waiting status', async () => {
   const r = await run(['list', '--blocked'], { cwd: ALPHA, projects: both })
   assert.match(r.out, /T-26-007/, 'status: blocked')
   assert.match(r.out, /T-26-014/, 'status: needs-info')
+  assert.match(r.out, /T-26-012/, 'status: waits-info')
   assert.equal(/T-26-013/.test(r.out), false, 'notify is not stalled')
 })
 
@@ -208,7 +209,7 @@ test('--json is a stable object and nothing else is on stdout', async () => {
   assert.deepEqual(data.projects.map((p) => p.name), ['alpha', 'beta'])
 
   const alpha = data.projects[0]
-  assert.equal(alpha.counts.total, 12)
+  assert.equal(alpha.counts.total, 13)
   assert.equal(alpha.counts.slipped, 1)
   assert.equal(alpha.counts.unowned, 1)
 
@@ -220,6 +221,9 @@ test('--json is a stable object and nothing else is on stdout', async () => {
   assert.equal(notify.awaitingNotice, true)
   assert.equal(notify.notified, null, 'the notice is still owed')
   assert.equal(notify.requestedBy, 'Vera')
+  assert.equal(notify.gmailThreadId, null)
+  const withThread = alpha.tasks.find((t) => t.id === 'T-26-003')
+  assert.equal(withThread.gmailThreadId, '1a05925fdef4f718')
   const closed = data.projects[0].tasks.find((t) => t.id === 'T-26-001')
   assert.equal(closed.notified, '2026-08-13')
 

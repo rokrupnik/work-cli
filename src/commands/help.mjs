@@ -29,7 +29,7 @@ LIST FILTERS  (all of them compose)
   -o, --owner <NAME>      owner, repeatable; --owner none for unowned
   -s, --status <STATE>    ${STATUSES.join(', ')}
   -w, --week <YY-Wnn>     scheduled week or current folder
-      --blocked           blocked or needs-info, or a non-empty blocked-by
+      --blocked           blocked, needs-info, waits-info, or a blocked-by
       --notify            shipped; the requester has not been told yet
       --unowned           no @OWNER and no assignee
       --slipped           week: and the week folder disagree
@@ -69,9 +69,9 @@ function topicHelp(topic, ctx) {
 Inside a section, rows run in scheduled-week order with a blank line at each
 change of week.
 
---blocked spans both waiting statuses: blocked is our move and we cannot make
-it, needs-info is somebody else's — a named person owes an answer, a decision
-or a file.
+--blocked spans every stalled state: blocked is our move and we cannot make it;
+needs-info means the stakeholder still has to be asked; waits-info means the
+question was sent and a reply, decision or file is now owed.
 
 --notify is the debt to a human. It sits before done because done adds the x_
 prefix, which sorts the file to the bottom of the week folder where nobody

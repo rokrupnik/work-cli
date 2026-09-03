@@ -113,10 +113,9 @@ export function filterTasks(tasks, f = {}) {
 
 /**
  * Stalled: parked on one of the waiting statuses, or holding an unmet
- * dependency. `needs-info` counts — splitting `blocked` in two was a change to
- * how the stall is described, not to what is stalled, and a `--blocked` that
- * quietly stopped listing four tasks the day the convention grew would report
- * progress that never happened.
+ * dependency. Both info states count: `needs-info` still needs the question
+ * sent, while `waits-info` is waiting for the reply. A `--blocked` filter that
+ * omitted either would report progress that never happened.
  */
 export function isBlocked(t) {
   return WAITING_STATUSES.includes(t.status) || t.blockedBy.length > 0

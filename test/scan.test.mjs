@@ -11,7 +11,7 @@ test('scan: every week folder and task file is found', () => {
   const s = alpha()
   assert.equal(s.readError, null)
   assert.deepEqual(s.weeks.map((w) => w.folder), ['x_26-W33', '26-W34', '26-W35'])
-  assert.equal(s.tasks.length, 12)
+  assert.equal(s.tasks.length, 13)
   assert.deepEqual(s.strays, [])
 })
 
@@ -31,6 +31,8 @@ test('scan: derived fields', () => {
 
   const onTime = byId.get('T-26-003')
   assert.equal(onTime.slipped, false)
+  assert.equal(onTime.gmailThreadId, '1a05925fdef4f718')
+  assert.equal(byId.get('T-26-004').gmailThreadId, '')
 
   assert.equal(byId.get('T-26-005').unowned, true)
   assert.deepEqual(byId.get('T-26-004').owners, ['ANA', 'BOR'])
@@ -38,6 +40,7 @@ test('scan: derived fields', () => {
   assert.equal(byId.get('T-26-001').folderClosed, true)
   assert.equal(byId.get('T-26-009').leased, true)
   assert.equal(byId.get('T-26-003').leased, false)
+  assert.equal(byId.get('T-26-012').waiting, true)
   assert.deepEqual(byId.get('T-26-007').blockedBy, ['T-26-003'])
 })
 

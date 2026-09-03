@@ -12,6 +12,8 @@ export const WEEK_FOLDER = /^(x_)?(\d{2})-W(\d{2})$/
 export const TASK_FILE = /^(x_)?(T-(\d{2})-(\d{3,}))_([^@]*?)(?:@([^.]*))?\.md$/i
 /** A bare id, wherever one is referenced. */
 export const TASK_ID = /^T-(\d{2})-(\d{3,})$/
+/** Gmail API thread ids are opaque lowercase hexadecimal strings. */
+export const GMAIL_THREAD_ID = /^[0-9a-f]{8,64}$/
 
 // The state machine in work/README.md. `open`, `in-progress` and `done` are the
 // original three; the rest arrived with the agent workflow. Anything outside the
@@ -32,6 +34,7 @@ export const STATUSES = [
   'integrating',
   'changes-requested',
   'needs-info',
+  'waits-info',
   'blocked',
   'notify',
   'done',
@@ -41,22 +44,21 @@ export const STATUSES = [
 export const ACTIVE_STATUSES = ['in-progress', 'review', 'integrating']
 
 /**
- * Stalled, whoever's fault it is. Two statuses rather than one because the
- * distinction is the only thing that makes the reading useful: `blocked` is our
- * move and we cannot make it (a task dependency, a technical obstacle),
- * `needs-info` is somebody else's — a named person owes an answer, a decision or
- * a file. On the day rfx-odoo split them, every one of its stalled tasks was
- * waiting on a person, so the undivided status had been answering no question at
- * all. `--blocked` spans both: a filter that silently dropped half the stalled
- * work the day the convention grew would be worse than no filter.
+ * Stalled, whoever's fault it is. `blocked` is our move and we cannot make it
+ * (a task dependency or technical obstacle). `needs-info` means the missing
+ * input is known but the stakeholder still has to be asked; `waits-info` means
+ * the question was sent and the named person now owes an answer, decision or
+ * file. `--blocked` spans all three so changing the precision of the state
+ * never makes stalled work disappear from the overview.
  */
-export const WAITING_STATUSES = ['blocked', 'needs-info']
+export const WAITING_STATUSES = ['blocked', 'needs-info', 'waits-info']
 
 /**
  * Statuses that cannot name nobody. `notify` would not know who to write to and
- * `needs-info` would not know who to ask, so both require a `requested-by:`.
+ * the two info states would not know who to ask or await, so all three require a
+ * `requested-by:`.
  */
-export const REQUESTER_REQUIRED_STATUSES = ['notify', 'needs-info']
+export const REQUESTER_REQUIRED_STATUSES = ['notify', 'needs-info', 'waits-info']
 
 /**
  * Where a `notified:` date is meaningful: while the notice is still owed, and
@@ -110,6 +112,10 @@ export function parseTaskId(s) {
 
 export function isWeek(s) {
   return /^\d{2}-W\d{2}$/.test(String(s).trim())
+}
+
+export function isGmailThreadId(s) {
+  return GMAIL_THREAD_ID.test(String(s).trim())
 }
 
 /** ISO-8601-ish instant, as `leased-at` is documented to hold. */

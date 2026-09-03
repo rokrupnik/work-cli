@@ -12,6 +12,7 @@ export function taskToJson(t) {
     assignee: t.assignee,
     filenameOwners: t.fileOwners,
     requestedBy: t.requestedBy || null,
+    gmailThreadId: t.gmailThreadId || null,
     week: t.week || null,
     folder: t.folder,
     folderWeek: t.folderWeek,

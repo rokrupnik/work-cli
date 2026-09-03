@@ -215,12 +215,12 @@ function rowFor(t, color) {
 }
 
 function colorStatus(status, color) {
-  // `needs-info` is not `blocked` in a different shade: red is our obstacle,
-  // magenta is somebody else's move. And `notify` is deliberately not green —
+  // The info states are not `blocked` in a different shade: red is our
+  // obstacle, magenta is stakeholder communication. And `notify` is not green —
   // green is `done`, and a debt that reads as finished is the exact mistake
   // putting `notify` before `done` exists to prevent.
   if (status === 'blocked') return color.red(status)
-  if (status === 'needs-info') return color.magenta(status)
+  if (status === 'needs-info' || status === 'waits-info') return color.magenta(status)
   if (status === 'notify') return color.blue(status)
   if (status === 'done') return color.green(status)
   if (ACTIVE_STATUSES.includes(status)) return color.yellow(status)

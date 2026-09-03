@@ -50,6 +50,7 @@ test('every documented rule fires on the broken fixture', () => {
     'malformed-frontmatter',
     'invalid-status',
     'invalid-date',
+    'invalid-gmail-thread-id',
     'invalid-week',
     'invalid-week-folder',
     'missing-blocked-by',
@@ -79,9 +80,9 @@ test('block scalars in the frontmatter are not a malformed file', () => {
   assert.deepEqual(has(diags, 'malformed-frontmatter'), [])
 })
 
-test('notify and needs-info must name a person', () => {
+test('notify, needs-info and waits-info must name a person', () => {
   const diags = has(codesFor(BETA, 'beta'), 'notify-without-requester')
-  assert.deepEqual(diags.map((d) => d.id).sort(), ['T-26-031', 'T-26-032'])
+  assert.deepEqual(diags.map((d) => d.id).sort(), ['T-26-031', 'T-26-032', 'T-26-035'])
   assert.equal(diags.every((d) => d.severity === 'error'), true)
   // The ones that do name a person raise nothing.
   assert.deepEqual(has(codesFor(ALPHA, 'alpha'), 'notify-without-requester'), [])
@@ -102,6 +103,14 @@ test('notified: is held to the same date format as created and completed', () =>
   assert.ok(bad, 'the non-date is reported')
   assert.equal(bad.severity, 'error')
   assert.match(bad.message, /notified: sometime last week/)
+})
+
+test('gmail-thread-id accepts the API id and rejects a Gmail URL or UI token', () => {
+  assert.deepEqual(has(codesFor(ALPHA, 'alpha'), 'invalid-gmail-thread-id'), [])
+  const [bad] = has(codesFor(BETA, 'beta'), 'invalid-gmail-thread-id')
+  assert.equal(bad.id, 'T-26-019')
+  assert.equal(bad.severity, 'error')
+  assert.match(bad.hint, /API thread id only/)
 })
 
 test('a closed task that recorded its notice is not a finding', () => {
