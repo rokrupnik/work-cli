@@ -35,6 +35,7 @@ export const STATUSES = [
   'changes-requested',
   'needs-info',
   'waits-info',
+  'waiting',
   'blocked',
   'notify',
   'done',
@@ -52,6 +53,12 @@ export const ACTIVE_STATUSES = ['in-progress', 'review', 'integrating']
  * never makes stalled work disappear from the overview.
  */
 export const WAITING_STATUSES = ['blocked', 'needs-info', 'waits-info']
+
+/**
+ * Postponed on purpose until `until:` (a week or a date); not stalled, so not in
+ * `--blocked`. A daily `scripts/waiting.py wake` in the project returns it to `open`.
+ */
+export const POSTPONED_STATUSES = ['waiting']
 
 /**
  * Statuses that cannot name nobody. `notify` would not know who to write to and
